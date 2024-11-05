@@ -6,3 +6,4 @@ mediapipe
 transformers
 av
 ultralytics
+colorama
