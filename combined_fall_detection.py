@@ -6,7 +6,28 @@ import collections
 import time
 import os
 from transformers import pipeline
+from colorama import init, Fore, Style
 
+
+# Utilized Directories
+data_dir = 'temp_segments' # Directory for storing temporary segments
+media_folder = './media' # Directory for storing .mp4 media files
+
+
+# Constants
+MODEL_NAME = "yadvender12/videomae-base-finetuned-kinetics-finetuned-fall-detect"
+
+
+# Setup    
+init(autoreset=True) # Initialize colorama
+
+# Initialize Video Classification Pipeline
+def initialize_pipeline():
+    """Initialize the video classification pipeline."""
+    return pipeline("video-classification", model=MODEL_NAME)
+
+
+# Delete all files in the temp_segments directory
 def clear_temp_segments(directory):
     """Clear all files in the specified directory."""
     for filename in os.listdir(directory):
@@ -17,24 +38,63 @@ def clear_temp_segments(directory):
         except Exception as e:
             print(f"Failed to delete {file_path}. Reason: {e}")
 
-def initialize_pipeline():
-    """Initialize the video classification pipeline."""
-    return pipeline("video-classification", model="yadvender12/videomae-base-finetuned-kinetics-finetuned-fall-detect")
+
+
+# def select_video_file():
+#     """Prompt the user to select a video file to process."""
+#     print("Select the video file to process:\n1. fall.mp4\n2. fall2.mp4")
+#     video_choice = input()
+#     if video_choice == '1':
+#         return 'fall.mp4'
+#     elif video_choice == '2':
+#         return 'fall2.mp4'
+#     else:
+#         print("Invalid input. Exiting.")
+#         exit()
+
 
 def select_video_file():
-    """Prompt the user to select a video file to process."""
-    print("Select the video file to process:\n1. fall.mp4\n2. fall2.mp4")
-    video_choice = input()
-    if video_choice == '1':
-        return 'fall.mp4'
-    elif video_choice == '2':
-        return 'fall2.mp4'
-    else:
-        print("Invalid input. Exiting.")
+    """Prompt the user to select a video file to process from the 'media' folder."""
+    media_folder = './media'
+    
+    # Get a list of all .mp4 files in the media folder
+    video_files = [f for f in os.listdir(media_folder) if f.endswith('.mp4')]
+    
+    # Check if there are any video files in the folder
+    if not video_files:
+        print(Fore.RED + "No video files found in the 'media' folder.")
         exit()
+    
+    while True:
+        # Print the video file options
+        print(Fore.CYAN + "\nSelect the video file to process (enter 'q' to quit):")
+        for idx, file in enumerate(video_files, start=1):
+            print(Fore.YELLOW + f"{idx}. {file}")
+        
+        # Get user input
+        user_input = input(Fore.CYAN + "\nEnter the number corresponding to your choice: ")
+        
+        # Handle 'q' input to quit
+        if user_input.lower() == 'q':
+            print(Fore.GREEN + "\nExiting program.\n")
+            exit()
+        
+        # Validate if the input is a number and within range
+        if user_input.isdigit():
+            choice = int(user_input)
+            if 1 <= choice <= len(video_files):
+                # Return the selected file path
+                return os.path.join(media_folder, video_files[choice - 1])
+        
+        # If invalid input, show an error message in red
+        print(Fore.RED + "\nInvalid input. Please enter a number corresponding to a video file or 'q' to quit.")
+        
+        
 
 def process_video(video_file, model, pipe):
-    """Process the selected video file for fall detection."""
+    """Creates clips of possible falls in the video and saves them in the temp_segments directory."""
+    
+    # Let's make checkpoints in the video when we think there might be a fall
     cap = cv2.VideoCapture(video_file)
     count = 0
     frame_buffer = collections.deque(maxlen=30)  # Buffer to store frames
@@ -42,6 +102,7 @@ def process_video(video_file, model, pipe):
     fall_start_time = None
     video_writer = None
 
+    # Loop every 3rd video frame
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -50,6 +111,7 @@ def process_video(video_file, model, pipe):
         if count % 3 != 0:
             continue
 
+        # Resize the frame to a standard size
         frame = cv2.resize(frame, (1020, 600))
         frame_buffer.append(frame.copy())  # Store the current frame in the buffer
 
@@ -64,36 +126,41 @@ def process_video(video_file, model, pipe):
             track_ids = results[0].boxes.id.int().cpu().tolist()  # Track IDs
             confidences = results[0].boxes.conf.cpu().tolist()  # Confidence score
 
+            # Loop through each object box in the frame
             for box, class_id, track_id, conf in zip(boxes, class_ids, track_ids, confidences):
-                c = model.model.names[class_id]
+                detected_object = model.model.names[class_id]
                 x1, y1, x2, y2 = box
                 h = y2 - y1
                 w = x2 - x1
                 thresh = h - w
 
+                # Width > Height ? Possible Fall 
                 if thresh <= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
                     cvzone.putTextRect(frame, f'{track_id}', (x1, y2), 1, 1)
                     cvzone.putTextRect(frame, f"{'Fall'}", (x1, y1), 1, 1)
 
+                    # If a fall is detected, initialize a video writer and start recording
                     if not fall_detected:
                         fall_detected = True
                         fall_start_time = time.time()
                         # Initialize video writer
+                        # specify 4 letter CODEC to tell cv2 how the video should be saved
                         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                        video_writer = cv2.VideoWriter(f'temp_segments/fall_detected_{int(fall_start_time)}.mp4', fourcc, 30, (1020, 600))
+                        video_writer = cv2.VideoWriter(f'{data_dir}/fall_detected_{int(fall_start_time)}.mp4', fourcc, 30, (1020, 600))
                         
                         # Write whatever frames are available in the buffer
                         for buffered_frame in frame_buffer:
                             video_writer.write(buffered_frame)
-
                     video_writer.write(frame)
 
+                # If no fall is detected, draw a green rectangle around the object
                 else:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     cvzone.putTextRect(frame, f'{track_id}', (x1, y2), 1, 1)
                     cvzone.putTextRect(frame, f"{'Normal'}", (x1, y1), 1, 1)
 
+                    # Fall was detected previously but not now
                     if fall_detected:
                         # Stop recording when fall is over
                         fall_detected = False
@@ -104,25 +171,30 @@ def process_video(video_file, model, pipe):
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    # Release resources
+    # Release resources when video processing is complete
     cap.release()
     cv2.destroyAllWindows()
     if video_writer:
         video_writer.release()
 
+
 def analyze_fall_segments(pipe):
     """Analyze saved fall segments with the pretrained model."""
     fall_count = 0  # Counter for the number of falls detected
-    for filename in os.listdir('temp_segments'):
+    
+    # Get all clips of possible falls
+    for filename in os.listdir(data_dir):
+        
+        # Process each fall clip
         if filename.endswith('.mp4'):
-            video_path = os.path.join('temp_segments', filename)
+            video_path = os.path.join(data_dir, filename)
             
             # Run the model on each sub-video
             try:
                 result = pipe(video_path)
             except RuntimeError as e:
-                print_red(f"Error processing video! {video_path}: {e}")
-                #print(f"Error processing video! {video_path}: {e}")
+                # Stop checking this clip if some error occurs
+                print(Fore.RED + f"Error processing video! {video_path}: {e}")
                 continue
 
             # Check if the pretrained model also detects a fall
@@ -132,25 +204,16 @@ def analyze_fall_segments(pipe):
                 fall_count += 1  # Increment fall count only if both models detect a fall
                 for pred in result:
                     if 'fall' in pred['label'].lower():
-                        print_green(f"{fall_count} FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']}")
-                        #print(f"{fall_count} FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']}")
+                        print(Fore.GREEN + f"{fall_count} FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']}")
 
     # Print the total number of falls detected
     print(f"Total number of falls detected: {fall_count}")
 
-def print_green(text):
-    """Print text in green color."""
-    print(f"\033[92m{text}\033[0m")
-
-def print_red(text):
-    """Print text in red color."""
-    print(f"\033[91m{text}\033[0m")
-
 
 def main():
     """Main function to execute the fall detection pipeline."""
-    # Clear temporary segments directory
-    clear_temp_segments('temp_segments')
+    # Prepare data directory by removing any existing files
+    clear_temp_segments(data_dir)
 
     # Initialize the video classification pipeline
     pipe = initialize_pipeline()
@@ -167,6 +230,9 @@ def main():
 
     # Analyze the fall segments
     analyze_fall_segments(pipe)
+    
+    # Clean up data directory on exit
+    clear_temp_segments(data_dir)
 
 if __name__ == "__main__":
     main()
