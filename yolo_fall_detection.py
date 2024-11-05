@@ -13,6 +13,7 @@ cv2.namedWindow('RGB')
 cv2.setMouseCallback('RGB', RGB)
 # Load the YOLOv8 model
 model = YOLO("yolo11s.pt")
+model(verbose = False)[0]
 names=model.model.names
 # Open the video file (use video file or webcam, here using webcam)
 cap = cv2.VideoCapture('fall2.mp4')

@@ -8,6 +8,8 @@ This project is designed to detect falls using a custom model. Follow the instru
 
 **pretrained_fall_detection_model.py**: This script leverages a pretrained fall detection model from Hugging Face. It splits the input video into two-second clips and classifies each clip to determine if a fall has occurred.
 
+**combined_fall_detection_model.py**: This script integrates the functionality of both the yolo_fall_detection.py and pretrained_fall_detection_model.py scripts into a single program. First, it utilizes YOLO to detect potential falls by identifying if a person’s torso size decreases, indicating a possible fall. If a fall is suspected, the script clips the video segment and passes it through a pretrained model from Hugging Face to confirm the fall and provide a confidence score. It then outputs all detected falls along with the total count.
+
 ## Requirements
 
 - **Miniconda** or **Anaconda** installed on your machine.
@@ -38,5 +40,9 @@ This project is designed to detect falls using a custom model. Follow the instru
     - **Run `yolo_fall_detection` script**:
       ```bash
       python yolo_fall_detection.py
+      ```
+    - **Run `combined_fall_detection_model` script**:
+      ```bash
+      python combined_fall_detection_model.py
       ```
     
