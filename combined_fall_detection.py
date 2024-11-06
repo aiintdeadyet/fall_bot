@@ -2,7 +2,7 @@ import sys
 from ultralytics import YOLO
 
 # Pycache is killing me
-sys.dont_write_bytecode = True
+# sys.dont_write_bytecode = True
 
 # Import config
 
