@@ -1,8 +1,12 @@
+import sys
 from ultralytics import YOLO
 
+# Pycache is killing me
+sys.dont_write_bytecode = True
 
 # Import config
-from config import data_dir, media_folder, FALL_MODEL_NAME, YOLO_MODEL_NAME
+
+from utils.config import data_dir, media_folder, FALL_MODEL_NAME, YOLO_MODEL_NAME
 1
 # Import utils
 from utils.file_utils import clear_temp_segments, select_video_file

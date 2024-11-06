@@ -1,4 +1,8 @@
 __pycache__/
 tokens.py
 temp_segments/
-.DS_Store/
+.DS_Store
+
+# Sandbox File
+sandbox.py
+

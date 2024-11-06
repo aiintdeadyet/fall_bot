@@ -3,6 +3,7 @@ import cvzone
 import collections
 import time
 import os
+import sys
 from colorama import init, Fore
 from transformers import pipeline
 
@@ -10,7 +11,8 @@ from transformers import pipeline
 init(autoreset=True) # Initialize colorama
 
 # Import config
-from config import data_dir, FALL_MODEL_NAME
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.config import data_dir, FALL_MODEL_NAME
 
 # Initialize Video Classification Pipeline
 def initialize_pipeline():
