@@ -3,16 +3,20 @@ from tokens import PUSHOVER_API_TOKEN as API_TOKEN
 from tokens import PUSHOVER_USER_KEY as USER_KEY
 
 
-def send_pushover_notification(message):
+def pushover(userkey):
     url = "https://api.pushover.net/1/messages.json"
     data = {
         "token": API_TOKEN,
         "user": USER_KEY,
-        "message": message
+        "message": "Someone has fallen"
     }
     response = requests.post(url, data=data)
     return response.status_code
 
-# Fill in with your Pushover user key and API token
-send_pushover_notification("Someone has fallen")
+def main():
+    # Fill in with your Pushover user key and API token
+    pushover(USER_KEY)
 
+
+if __name__ == "__main__":
+    main()
