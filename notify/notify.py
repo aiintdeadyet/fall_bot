@@ -10,13 +10,15 @@ def notify(person):
     if person_info["pushover"][0] and person_info["pushover"][1]:
         pushover.pushover(person_info["pushover"])
     if person_info["email"][0] and person_info["email"][1]:
-        print(person_info["email"][0])
+        send_email.Email("Fall bot", "Someone has fallen", person_info["email"][0])
     if person_info["phone"][0] and person_info["phone"][1]:
         text.text(person_info["phone"][0], person_info["phone"][2])
 
 
 def main():
+    # notify("Bailey")
     notify("James")
+    # notify("Zach")
 
 
 if __name__ == "__main__":
