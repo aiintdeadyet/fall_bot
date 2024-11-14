@@ -1,5 +1,6 @@
 import sys
 from ultralytics import YOLO
+import os
 
 # Pycache is killing me
 # sys.dont_write_bytecode = True
@@ -17,6 +18,9 @@ def main():
     """Main function to execute the fall detection pipeline."""
     # Prepare data directory by removing any existing files
     clear_temp_segments(data_dir)
+
+    # Ensure the directory exists after clearing
+    os.makedirs(data_dir, exist_ok=True)
 
     # Initialize the video classification pipeline
     pipe = initialize_pipeline()
