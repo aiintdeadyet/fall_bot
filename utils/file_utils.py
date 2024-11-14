@@ -14,7 +14,7 @@ init(autoreset=True) # Initialize colorama
 
 # Delete all files in the temp_segments directory
 # Set debug=True print out debug statements
-def clear_temp_segments(directory, debug=False):
+def clear_temp_segments(directory, debug=True):
     """Clear all files in the specified directory. Remove directory if it is empty after clearing files."""
     
     # Create directory if it doesn't exist
