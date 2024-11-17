@@ -6,3 +6,5 @@ mediapipe
 transformers
 av
 ultralytics
+pyqt6
+pyqt6-tools
