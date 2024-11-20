@@ -11,7 +11,7 @@ from utils.config import data_dir, media_folder, FALL_MODEL_NAME, YOLO_MODEL_NAM
 1
 # Import utils
 from utils.file_utils import clear_temp_segments, select_video_file
-from utils.video_utils import process_video, analyze_fall_segments, initialize_pipeline
+from utils.video_utils import process_video, analyze_fall_segments, initialize_pipeline, process_webcam
 
 
 def main():
@@ -33,7 +33,10 @@ def main():
     video_file = select_video_file()
 
     # Process the selected video file
-    process_video(video_file, model, pipe)
+    if video_file == 'webcam':
+        process_webcam(model, pipe)
+    else:
+        process_video(video_file, model, pipe)
 
     # Analyze the fall segments
     analyze_fall_segments(pipe)
