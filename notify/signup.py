@@ -22,17 +22,17 @@ class Person():
         carrier_num = 0
         while True:
             try:
-                self.phone_carrier = int(input("Please input the number next to your phone carryer: "))
+                carrier_num = int(input("Please input the number next to your phone carrier: "))
             except ValueError:
                 print("Invalid choice")
                 continue
-            if self.phone_carrier > 4 or self.phone_carrier < 0:
+            if carrier_num > 4 or carrier_num < 1:
                 print("Invalid choice")
                 continue
             else:
                 break
         carriers = ("At&t", "Verizon", "Tmobile", "Sprint")
-        self.phone_carrier = carriers[carrier_num]
+        self.phone_carrier = carriers[carrier_num - 1]
 
         # Email address
         self.email = input("What is your email address: ")
@@ -40,6 +40,23 @@ class Person():
         # Pushover
         print("If you don't have a Pushover userkey, you can create one at https://pushover.net/")
         self.pushoverID = input("What is your Pushover userkey: ")
+
+        # Notification preferences
+        self.sms_opt_in = self.get_opt_in_response("Would you like to receive notifications via SMS (y/n): ")
+        self.email_opt_in = self.get_opt_in_response("Would you like to receive notifications via Email (y/n): ")
+        self.pushover_opt_in = self.get_opt_in_response("Would you like to receive notifications via Pushover (y/n): ")
+
+    @staticmethod
+    def get_opt_in_response(prompt: str) -> bool:
+        """Helper function to get yes/no response and convert to boolean."""
+        while True:
+            response = input(prompt).strip().lower()
+            if response in ("y", "yes"):
+                return True
+            elif response in ("n", "no"):
+                return False
+            else:
+                print("Invalid response, please answer with 'y' or 'n'.")
 
     def save_to_json(self, filename="people.json"):
         """Appends the person's data to a JSON file."""
@@ -49,7 +66,10 @@ class Person():
             "phone_number": self.phone_number,
             "phone_carrier": self.phone_carrier,
             "email": self.email,
-            "pushoverID": self.pushoverID
+            "pushoverID": self.pushoverID,
+            "sms_opt_in": self.sms_opt_in,
+            "email_opt_in": self.email_opt_in,
+            "pushover_opt_in": self.pushover_opt_in
         }
 
         # Check if the file exists
