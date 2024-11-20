@@ -4,9 +4,7 @@ This project is designed to detect falls using a custom model. Follow the instru
 
 # Script Details
 
-**yolo_fall_detection.py**: This script uses YOLO to identify bounding boxes around a person’s body. A fall is detected if the bounding box shrinks, which may indicate a change in posture due to a fall.
-
-**pretrained_fall_detection_model.py**: This script leverages a pretrained fall detection model from Hugging Face. It splits the input video into two-second clips and classifies each clip to determine if a fall has occurred.
+**combined_fall_detection_model.py**: This script combines two approaches—YOLO-based fall detection and a pretrained model from Hugging Face—to identify falls in video footage with greater accuracy. First, the script uses YOLO to detect a potential fall by tracking changes in a person’s posture, particularly by observing if the bounding box around a person’s body shrinks, which can indicate a fall. If YOLO flags a possible fall, the script extracts a short video segment and processes it through a pretrained fall detection model from Hugging Face. This model further analyzes the segment to confirm the fall, providing a confidence score. The script outputs detected falls, along with their confidence scores, and keeps a running total of all confirmed falls in the video. This combined approach aims to improve the precision of fall detection by leveraging both object tracking and machine learning classification.
 
 ## Requirements
 
@@ -28,15 +26,7 @@ This project is designed to detect falls using a custom model. Follow the instru
     pip install -r requirements.txt
 4. **Run the Program**
 
-    Choose one of the scripts below based on the detection method you wish to use:
-
-    - **Run `pretrained_fall_detection_model` script**:
       ```bash
-      python pretrained_fall_detection_model.py
-      ```
-
-    - **Run `yolo_fall_detection` script**:
-      ```bash
-      python yolo_fall_detection.py
+      python combined_fall_detection_model.py
       ```
     

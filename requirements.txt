@@ -8,3 +8,5 @@ av
 ultralytics
 pyqt6
 pyqt6-tools
+colorama
+
