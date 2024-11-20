@@ -10,6 +10,7 @@ from transformers import pipeline
 # Setup    
 init(autoreset=True) # Initialize colorama
 
+
 # Import config
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.config import data_dir, FALL_MODEL_NAME
@@ -22,9 +23,20 @@ def initialize_pipeline():
 
 def process_video(video_file, model, pipe):
     """Creates clips of possible falls in the video and saves them in the temp_segments directory."""
+    message_printed = False
+    if video_file == 'live':
+        cap = cv2.VideoCapture(0)
+        print(Fore.GREEN + "Using live video input from webcam.")
+    else:
+        cap = cv2.VideoCapture(video_file)
+        print(Fore.GREEN + f"Using video file: {video_file}")
+
+    if not cap.isOpened():
+        print(Fore.RED + "Error: Could not open video source.")
+        return
     
     # Let's make checkpoints in the video when we think there might be a fall
-    cap = cv2.VideoCapture(video_file)
+    ##cap = cv2.VideoCapture(video_file)
     count = 0
     frame_buffer = collections.deque(maxlen=30)  # Buffer to store frames
     fall_detected = False
@@ -96,8 +108,20 @@ def process_video(video_file, model, pipe):
                         video_writer.release()
                         video_writer = None
 
-        cv2.imshow("RGB", frame)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        if video_file == 'live':
+            cv2.imshow("Live Video", frame)
+            if message_printed == False:
+                print(Fore.GREEN + "Press 'q' to stop video capture.")
+                message_printed = True
+
+        else: 
+            cv2.imshow("RGB", frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+        # Break the loop if 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            print(Fore.GREEN + "Stopping video capture.")
             break
 
     # Release resources when video processing is complete
@@ -134,6 +158,17 @@ def analyze_fall_segments(pipe):
                 for pred in result:
                     if 'fall' in pred['label'].lower():
                         print(Fore.GREEN + f"{fall_count} FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']}")
+                        cap = cv2.VideoCapture(video_path)
+                        while cap.isOpened():
+                            ret, frame = cap.read()
+                            if not ret:
+                                break
+                            cv2.putText(frame, f"{fall_count} FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            cv2.imshow("Fall Detection", frame)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                break
+                        cap.release()
+                        cv2.destroyAllWindows()
 
     # Print the total number of falls detected
     print(f"Total number of falls detected: {fall_count}")

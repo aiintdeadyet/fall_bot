@@ -89,6 +89,7 @@ def select_video_file():
         # Display options
         extensions_list = ', '.join(video_extensions)
         print(Fore.CYAN + f"\nEnter 'u' to upload a video ({extensions_list})")
+        print("Enter 'l' for live video input")
         print("Enter 'q' to quit")
         print("Or select an uploaded video below:\n")
         
@@ -100,12 +101,18 @@ def select_video_file():
             print(Fore.YELLOW + "No video files found in the 'media' folder. Uploading files can be selected using 'u'.\n")
 
         # Get user input
-        user_input = input(Fore.CYAN + "\nEnter 'u' to upload, 'q' to quit, or a number to select a file: ")
+        #user_input = input(Fore.CYAN + "\nEnter 'u' to upload, 'q' to quit, or a number to select a file: ")
+        user_input = input(Fore.GREEN + "Your choice: ").strip().lower()
+
 
         # Handle quit
         if user_input.lower() == 'q':
             print(Fore.GREEN + "\nExiting program.\n")
             exit()
+
+        elif user_input == 'l':
+            print(Fore.GREEN + "Live video input selected.")
+            return 'live'
 
         # Handle upload option
         elif user_input.lower() == 'u':
@@ -142,3 +149,44 @@ def select_video_file():
         # Invalid input handling
         else:
             print(Fore.RED + "Invalid input. Please enter 'u', 'q', or a number corresponding to a video file.")
+
+def process_video(video_file, model, pipe):
+    if video_file == 'live':
+        cap = cv2.VideoCapture(0)
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            # Process the frame with the model and pipeline
+            process_frame(frame, model, pipe)
+            cv2.imshow('Live Video', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        cap.release()
+        cv2.destroyAllWindows()
+    else:
+        # Existing code to process video file
+        pass
+def process_frame(frame, model, pipe):
+    # Implement frame processing logic here
+    pass
+
+if __name__ == "__main__":
+    # Initialize the video classification pipeline
+    pipe = initialize_pipeline()
+
+    # Load the YOLOv8 model
+    model = YOLO(YOLO_MODEL_NAME)
+    model(verbose=False)[0]
+
+    # Select the video file to process
+    video_file = select_video_file()
+
+    # Process the selected video file
+    process_video(video_file, model, pipe)
+
+    # Analyze the fall segments
+    analyze_fall_segments(pipe)
+    
+    # Clean up data directory on exit
+    clear_temp_segments(data_dir)
