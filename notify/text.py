@@ -15,7 +15,7 @@ def text(number, carrier):
 
 
 def main():
-    text("1234567890", "tmobile")
+    text("8013725518", "tmobile")
 
 
 if __name__ == "__main__":
