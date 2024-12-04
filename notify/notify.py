@@ -45,7 +45,8 @@ def notify(person_name):
 
 def main():
     # Notify individuals
-    notify("James Critchlow")
+    # notify("James Critchlow")
+    notify("Bailey Haskell")
     # Uncomment to notify others:
     # notify("Bailey")
     # notify("Zach")

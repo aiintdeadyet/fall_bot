@@ -7,7 +7,7 @@ from colorama import init, Fore
 
 # Config
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.config import data_dir, media_folder, FALL_MODEL_NAME
+from utils.config import data_dir, potential_falls_dir, media_folder, FALL_MODEL_NAME
 
 # setup
 init(autoreset=True) # Initialize colorama
@@ -74,7 +74,7 @@ def show_file_picker():
 # Prompt the user to select a video file to process from the 'media' folder
 # Or Upload, up to, multiple video files at once
 def select_video_file():
-    """Prompt the user to select or upload a video file from the 'media' folder."""
+    """Prompt the user to select or upload a video file from the 'media' folder or choose webcam."""
     
     # Ensure the media directory exists; create if it doesn't
     os.makedirs(media_folder, exist_ok=True)
@@ -89,6 +89,7 @@ def select_video_file():
         # Display options
         extensions_list = ', '.join(video_extensions)
         print(Fore.CYAN + f"\nEnter 'u' to upload a video ({extensions_list})")
+        print("Enter 'w' to use webcam")
         print("Enter 'q' to quit")
         print("Or select an uploaded video below:\n")
         
@@ -100,7 +101,7 @@ def select_video_file():
             print(Fore.YELLOW + "No video files found in the 'media' folder. Uploading files can be selected using 'u'.\n")
 
         # Get user input
-        user_input = input(Fore.CYAN + "\nEnter 'u' to upload, 'q' to quit, or a number to select a file: ")
+        user_input = input(Fore.CYAN + "\nEnter 'u' to upload, 'w' for webcam, 'q' to quit, or a number to select a file: ")
 
         # Handle quit
         if user_input.lower() == 'q':
@@ -133,6 +134,10 @@ def select_video_file():
             # Refresh video_files list to include new uploads
             video_files = [f for f in os.listdir(media_folder) if f.endswith(video_extensions)]
 
+        # Handle webcam option
+        elif user_input.lower() == 'w':
+            return 'webcam'
+
         # Handle selection of an existing file
         elif user_input.isdigit():
             choice = int(user_input)
@@ -141,4 +146,16 @@ def select_video_file():
 
         # Invalid input handling
         else:
-            print(Fore.RED + "Invalid input. Please enter 'u', 'q', or a number corresponding to a video file.")
+            print(Fore.RED + "Invalid input. Please enter 'u', 'w', 'q', or a number corresponding to a video file.")
+
+
+
+
+
+
+
+
+
+
+
+            
