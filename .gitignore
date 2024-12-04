@@ -1,6 +1,7 @@
 __pycache__/
 tokens.py
 temp_segments/
+potential_falls/
 .DS_Store
 
 # Sandbox File
