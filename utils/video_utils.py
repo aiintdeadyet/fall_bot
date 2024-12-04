@@ -10,6 +10,8 @@ from transformers import pipeline
 
 from notify.notify import notify
 
+# from notify import notify
+
 # Setup    
 init(autoreset=True) # Initialize colorama
 
@@ -93,8 +95,8 @@ def process_webcam(model, pipe):
                                     os.rename(temp_video_file, confirmed_file)  # Move to confirmed falls directory
 
                                     ####### ADD SEND NOTIFICATION FUNCTION ########
-                                    notify("James Critchlow")
-                                    # notify("Bailey Haskell")
+                                    # notify("James Critchlow")
+                                    notify("Bailey Haskell", confirmed_file)
                                     # notify("Bailey")
                                     # notify("Zach")
 
