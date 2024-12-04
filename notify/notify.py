@@ -1,13 +1,16 @@
 import json
-import send_email
-import text
-import pushover
+import os
+from . import send_email
+from . import text
+from . import pushover
 
 
 def load_people(filename="people.json"):
     """Loads the people information from a JSON file."""
     try:
-        with open(filename, "r") as json_file:
+        current_dir = os.path.dirname(os.path.abspath(__file__))  # Get directory of the script
+        file_path = os.path.join(current_dir, filename)  # Construct absolute path
+        with open(file_path, "r") as json_file:
             return json.load(json_file)
     except FileNotFoundError:
         print(f"Error: {filename} not found. Please ensure the file exists.")
@@ -17,7 +20,7 @@ def load_people(filename="people.json"):
         return []
 
 
-def notify(person_name):
+def notify(person_name, fall_video=None):
     """Notify the passed-in person with the method they want to be notified."""
     people_data = load_people()
 
@@ -34,7 +37,7 @@ def notify(person_name):
 
     # Notify via email if opted in
     if person_info.get("email_opt_in") and person_info["email"]:
-        send_email.Email("Fall bot", "Someone has fallen", person_info["email"])
+        send_email.Email("Fall bot", "Someone has fallen", person_info["email"], fall_video)
         print(f"Email notification sent to {person_name}.")
 
     # Notify via text if opted in
@@ -45,8 +48,8 @@ def notify(person_name):
 
 def main():
     # Notify individuals
-    # notify("James Critchlow")
-    notify("Bailey Haskell")
+    notify("James Critchlow")
+    # notify("Bailey Haskell")
     # Uncomment to notify others:
     # notify("Bailey")
     # notify("Zach")

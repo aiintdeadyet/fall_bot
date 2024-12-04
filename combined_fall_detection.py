@@ -8,7 +8,6 @@ import os
 # Import config
 
 from utils.config import data_dir, potential_falls_dir, media_folder, FALL_MODEL_NAME, YOLO_MODEL_NAME
-1
 # Import utils
 from utils.file_utils import clear_temp_segments, select_video_file
 from utils.video_utils import process_video, analyze_fall_segments, initialize_pipeline, process_webcam

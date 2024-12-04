@@ -8,6 +8,10 @@ import sys
 from colorama import init, Fore
 from transformers import pipeline
 
+from notify.notify import notify
+
+# from notify import notify
+
 # Setup    
 init(autoreset=True) # Initialize colorama
 
@@ -91,6 +95,10 @@ def process_webcam(model, pipe):
                                     os.rename(temp_video_file, confirmed_file)  # Move to confirmed falls directory
 
                                     ####### ADD SEND NOTIFICATION FUNCTION ########
+                                    # notify("James Critchlow")
+                                    notify("Bailey Haskell", confirmed_file)
+                                    # notify("Bailey")
+                                    # notify("Zach")
 
                                     wait_for_green = True  # Wait for green before detecting again
                                 else:

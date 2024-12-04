@@ -1,6 +1,6 @@
 import requests
-from tokens import PUSHOVER_API_TOKEN as API_TOKEN
-from tokens import PUSHOVER_USER_KEY as USER_KEY
+from .tokens import PUSHOVER_API_TOKEN as API_TOKEN
+from .tokens import PUSHOVER_USER_KEY as USER_KEY
 
 
 def pushover(userkey):

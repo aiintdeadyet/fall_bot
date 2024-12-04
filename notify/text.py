@@ -1,4 +1,4 @@
-from send_email import Email
+from .send_email import Email
 
 
 extentions = {
@@ -10,7 +10,7 @@ extentions = {
 
 
 def text(number, carrier):
-    extention = extentions[carrier]
+    extention = extentions[carrier.lower()]
     Email("From fall_bot", "Someone has fallen", str(number + extention))
 
 
