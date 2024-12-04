@@ -1,4 +1,4 @@
-from send_email import Email
+from .send_email import Email
 
 
 extentions = {

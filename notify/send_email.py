@@ -1,11 +1,11 @@
 import smtplib
 from email.message import EmailMessage
 
-
-from tokens import GMAIL_USERNAME as username
-from tokens import GMAIL_PASSWORD as password
-from tokens import PHONE_NUMBER  as number
-from tokens import GMAIL_APP_PASSWORD as app_password
+from . import tokens
+from .tokens import GMAIL_USERNAME as username
+from .tokens import GMAIL_PASSWORD as password
+from .tokens import PHONE_NUMBER  as number
+from .tokens import GMAIL_APP_PASSWORD as app_password
 
 
 def Email(subject, body, to):

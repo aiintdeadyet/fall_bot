@@ -1,7 +1,7 @@
 import json
-import send_email
-import text
-import pushover
+from . import send_email
+from . import text
+from . import pushover
 
 
 def load_people(filename="people.json"):
@@ -45,8 +45,8 @@ def notify(person_name):
 
 def main():
     # Notify individuals
-    # notify("James Critchlow")
-    notify("Bailey Haskell")
+    notify("James Critchlow")
+    # notify("Bailey Haskell")
     # Uncomment to notify others:
     # notify("Bailey")
     # notify("Zach")
