@@ -21,10 +21,13 @@ This project is designed to detect falls using a custom model. Follow the instru
 2. **Activate the Conda Environment**
     ```bash 
     conda activate fallBot
-3. **Install requirements**
+3. **Follow the steps in notify/README_notify.md file to signup for notifications (OPTIONAL)**
+    
+    
+4. **Install requirements**
     ```bash
     pip install -r requirements.txt
-4. **Run the Program**
+5. **Run the Program**
 
       ```bash
       python combined_fall_detection_model.py

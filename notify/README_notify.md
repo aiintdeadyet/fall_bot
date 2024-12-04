@@ -43,8 +43,26 @@ Follow the prompts to input the user's information.
 
 #### 2. **Sending Notifications**
 
-To send a notification, use the `notify()` function from the `notify/notify.py` file. You can call this function from another Python script in the project.
+To send a notification, use the `notify()` function from the `notify/notify.py` file. You can call this function from another Python script in the project. 
 
+***NOTE: If using email you need to add a tokens.py file in the notify directory. You can follow this link to setup email. The file structure for tokens.py will be like the following. https://www.youtube.com/watch?v=hXiPshHn9Pw&t=5s***
+
+
+## Example Code
+
+```python
+# tokens.py
+
+# Pushover Example Code
+PUSHOVER_API_TOKEN = "YOUR API TOKEN"
+PUSHOVER_USER_KEY = "YOUR USER KEY"
+
+# Gmail Info Example Code
+GMAIL_USERNAME = "YOUR GMAIL USERNAME"
+GMAIL_PASSWORD = "YOUR GMAIL PASSWORD"
+PHONE_NUMBER = "YOUR PHONE NUMBER"
+GMAIL_APP_PASSWORD = "YOUR GMAIL APP PASSWORD"
+```
 ##### Importing the `notify` Function
 
 In your script, import the `notify` function like this:

@@ -97,6 +97,7 @@ def process_webcam(model, pipe):
                                     ####### ADD SEND NOTIFICATION FUNCTION ########
                                     # notify("James Critchlow")
                                     notify("Bailey Haskell", confirmed_file)
+                                
                                     # notify("Bailey")
                                     # notify("Zach")
 
