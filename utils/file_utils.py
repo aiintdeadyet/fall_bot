@@ -7,7 +7,7 @@ from colorama import init, Fore
 
 # Config
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.config import data_dir, media_folder, FALL_MODEL_NAME
+from utils.config import data_dir, potential_falls_dir, media_folder, FALL_MODEL_NAME
 
 # setup
 init(autoreset=True) # Initialize colorama

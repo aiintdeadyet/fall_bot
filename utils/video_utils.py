@@ -2,6 +2,7 @@ import cv2
 import cvzone
 import collections
 import time
+import mediapipe as mp
 import os
 import sys
 from colorama import init, Fore
@@ -12,40 +13,32 @@ init(autoreset=True) # Initialize colorama
 
 # Import config
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.config import data_dir, FALL_MODEL_NAME
+from utils.config import data_dir, FALL_MODEL_NAME, potential_falls_dir
 
 # Initialize Video Classification Pipeline
 def initialize_pipeline():
     """Initialize the video classification pipeline."""
     return pipeline("video-classification", model=FALL_MODEL_NAME)
-
-
-
-
-def process_webcam(model, pipe):
-    """Creates clips of possible falls lasting more than 5 seconds and processes them with the pretrained model."""
     
+def process_webcam(model, pipe):
+    """Detects and processes potential falls, storing them in appropriate directories."""
+
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print(Fore.RED + "Error: Could not open webcam.")
         return
 
-    count = 0
-    frame_buffer = collections.deque(maxlen=30)  # Buffer to store frames
-    red_box_start_time = None  # Start time when box turns red
-    video_writer = None
-    temp_video_file = None  # Temporary file to store the recording
+    frame_buffer = collections.deque(maxlen=150)  # Buffer to store the last 5 seconds of frames (assuming 30 FPS)
+    red_box_start_time = None  # Start time of red box
+    wait_for_green = False  # Flag to wait for green box if a fall is detected
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-        count += 1
-        if count % 3 != 0:
-            continue
 
         frame = cv2.resize(frame, (1020, 600))
-        frame_buffer.append(frame.copy())  # Store the current frame in the buffer
+        frame_buffer.append(frame.copy())  # Continuously buffer frames
 
         results = model.track(frame, persist=True, classes=0)
 
@@ -62,69 +55,71 @@ def process_webcam(model, pipe):
                 w = x2 - x1
                 thresh = h - w
 
-                # If the box turns red
+                # If the box turns red (potential fall)
                 if thresh <= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                    cvzone.putTextRect(frame, f'{track_id}', (x1, y2), 1, 1)
-                    cvzone.putTextRect(frame, f"{'Fall'}", (x1, y1), 1, 1)
+                    cv2.putText(frame, "Potential Fall", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-                    if red_box_start_time is None:
-                        red_box_start_time = time.time()
+                    if not wait_for_green:  # Only proceed if we're not waiting for green
+                        if red_box_start_time is None:
+                            red_box_start_time = time.time()
 
-                        # Start recording when red box is first detected
-                        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                        temp_video_file = f"{data_dir}/temp_fall_{int(red_box_start_time)}.mp4"
-                        video_writer = cv2.VideoWriter(temp_video_file, fourcc, 30, (1020, 600))
+                        # Check if red box persists for more than 5 seconds
+                        if time.time() - red_box_start_time > 5:
+                            red_box_start_time = None  # Reset timer
 
-                        # Write buffered frames into the video
-                        for buffered_frame in frame_buffer:
-                            video_writer.write(buffered_frame)
+                            # Save buffered frames to a potential fall video file
+                            temp_video_file = f"{potential_falls_dir}/potential_fall_{int(time.time())}.mp4"
+                            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                            video_writer = cv2.VideoWriter(temp_video_file, fourcc, 30, (1020, 600))
+                            print(Fore.GREEN + f"Saving potential fall video: {temp_video_file}")
 
-                    if video_writer:
-                        video_writer.write(frame)
+                            for buffered_frame in frame_buffer:
+                                video_writer.write(buffered_frame)
 
-                else:
-                    # When box turns green, check the duration
-                    if red_box_start_time:
-                        red_box_duration = time.time() - red_box_start_time
-                        red_box_start_time = None
-
-                        # Stop recording
-                        if video_writer:
                             video_writer.release()
-                            video_writer = None
 
-                        if red_box_duration > 5:  # If red box lasted > 5 seconds
-                            print(Fore.GREEN + f"Fall recorded for {red_box_duration:.2f} seconds. Processing video...")
+                            # Process the saved clip with the model
                             try:
                                 result = pipe(temp_video_file)
-                                fall_detected_by_model = any('fall' in pred['label'].lower() for pred in result)
+                                print(Fore.CYAN + f"Model Result: {result}") # For debugging purposes
+                                fall_detected_by_model = any('fall' in pred['label'].lower() or 'lyingdown' in pred['label'].lower() for pred in result)
+
                                 if fall_detected_by_model:
-                                    for pred in result:
-                                        if 'fall' in pred['label'].lower():
-                                            print(Fore.GREEN + f"FALL DETECTED! Label: {pred['label']}, Confidence: {pred['score']} Filename: {temp_video_file}")
+                                    print(Fore.GREEN + f"FALL DETECTED! Moving to confirmed directory: {temp_video_file}")
+                                    confirmed_file = os.path.join(data_dir, os.path.basename(temp_video_file))
+                                    os.rename(temp_video_file, confirmed_file)  # Move to confirmed falls directory
+                                    wait_for_green = True  # Wait for green before detecting again
                                 else:
-                                    print(Fore.YELLOW + "No fall detected by the model.")
+                                    print(Fore.YELLOW + "No fall detected by the model. Keeping in potential falls.")
+                                    # print(Fore.CYAN + f"Model Result: {result}")  # Log the full result for non-falls
+                                    # File stays in the potential_falls directory
+                                    wait_for_green = False  # Allow immediate detection
+
                             except RuntimeError as e:
                                 print(Fore.RED + f"Error processing video! {temp_video_file}: {e}")
-                        else:
-                            # If red box duration <= 5 seconds, discard the video
-                            print(Fore.YELLOW + f"Ignored recording. Red box lasted only {red_box_duration:.2f} seconds.")
-                            if temp_video_file and os.path.exists(temp_video_file):
-                                os.remove(temp_video_file)
-                        temp_video_file = None
+                                # If error occurs, leave the file in the potential_falls directory
+                            finally:
+                                temp_video_file = None
 
-        cv2.imshow("RGB", frame)
+                else:  # Box turns green (standing)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    cv2.putText(frame, "Standing", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                    if wait_for_green:
+                        wait_for_green = False  # Reset after green box appears
+                        frame_buffer.clear()  # Clear the buffer after processing a fall
+
+                    red_box_start_time = None  # Reset red box start time
+
+        # Display the frame with annotations
+        cv2.imshow("Pose Detection", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    # Release resources when done
+    # Release resources
     cap.release()
-    cv2.destroyAllWindows()
-    if video_writer:
-        video_writer.release()
-    
-      
+    cv2.destroyAllWindows()   
 
 def process_video(video_file, model, pipe):
     """Creates clips of possible falls in the video and saves them in the temp_segments directory."""
