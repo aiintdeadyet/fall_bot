@@ -89,6 +89,9 @@ def process_webcam(model, pipe):
                                     print(Fore.GREEN + f"FALL DETECTED! Moving to confirmed directory: {temp_video_file}")
                                     confirmed_file = os.path.join(data_dir, os.path.basename(temp_video_file))
                                     os.rename(temp_video_file, confirmed_file)  # Move to confirmed falls directory
+
+                                    ####### ADD SEND NOTIFICATION FUNCTION ########
+
                                     wait_for_green = True  # Wait for green before detecting again
                                 else:
                                     print(Fore.YELLOW + "No fall detected by the model. Keeping in potential falls.")
